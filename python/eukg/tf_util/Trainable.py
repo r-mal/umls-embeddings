@@ -14,7 +14,7 @@ class Trainable:
 
   def prepare_feed_dict(self, batch, is_training, **kwargs):
     """
-    Turns a list of tensors into a dict of model parameter: tensor
+    Turns a list of tensors into a dict of model_parameter: tensor
     :param batch: list of data tensors to be passed to the model
     :param is_training: flag indicating if the model is in training or testing mode
     :param kwargs: optional other params

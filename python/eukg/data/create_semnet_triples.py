@@ -1,10 +1,12 @@
-import sys
+import argparse
 import csv
 import json
 import os
 from tqdm import tqdm
 from collections import defaultdict
 import numpy as np
+
+from create_test_set import split
 
 
 def process_mapping(umls_dir, data_dir):
@@ -84,12 +86,19 @@ def semnet_triples(umls_dir, data_dir):
       obj.append(name2id[row[2]])
 
   print('Saving the %d triples of the semantic network graph' % len(rel))
-  np.savez_compressed(os.path.join(data_dir, 'semnet', 'triples.npz'),
-                      subj=np.asarray(subj, dtype=np.int32),
-                      rel=np.asarray(rel, dtype=np.int32),
-                      obj=np.asarray(obj, dtype=np.int32))
+  split(np.asarray(subj, dtype=np.int32),
+        np.asarray(rel, dtype=np.int32),
+        np.asarray(obj, dtype=np.int32),
+        os.path.join(data_dir, 'semnet'),
+        'semnet',
+        600)
 
 
 if __name__ == "__main__":
-  semnet_triples(sys.argv[1],  sys.argv[2])
-  process_mapping(sys.argv[1], sys.argv[2])
+  parser = argparse.ArgumentParser(description='Extract relation triples into a compressed numpy file from MRCONSO.RRF')
+  parser.add_argument('umls_dir', help='UMLS directory')
+  parser.add_argument('--output', default='data', help='the compressed numpy file to be created')
+
+  args = parser.parse_args()
+  semnet_triples(args.umls_dir, args.output)
+  process_mapping(args.umls_dir, args.output)

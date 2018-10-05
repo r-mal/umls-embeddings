@@ -5,8 +5,8 @@ import math
 
 from tf_util import Trainer, ModelSaver
 
-from model import Model, EmbeddingModel
-from gan import Generator, train_gan
+from emb import EmbeddingModel
+from gan import Generator, train_gan, Discriminator
 import Config
 from data import data_util, DataGenerator
 
@@ -110,13 +110,14 @@ def init_model(config, data_generator):
     raise ValueError('Unrecognized model type: %s' % config.model)
 
   if config.mode == 'disc':
-    model = Model.BaseModel(config, em, data_generator)
+    model = Discriminator.BaseModel(config, em, data_generator)
   elif config.mode == 'gen':
     model = Generator.Generator(config, em, data_generator)
   else:
     raise ValueError('Unrecognized mode: %s' % config.mode)
 
   if npz:
+    # noinspection PyUnresolvedReferences
     npz.close()
 
   model.build()

@@ -1,17 +1,16 @@
 import tensorflow as tf
 
 # control options
-tf.flags.DEFINE_string("data_dir", "/users/rmm120030/working/umls-mke/data_final", "training data directory")
-tf.flags.DEFINE_string("model_dir", "/users/rmm120030/working/umls-mke/model", "model directory")
+tf.flags.DEFINE_string("data_dir", "data", "training data directory")
+tf.flags.DEFINE_string("model_dir", "model", "model directory")
 tf.flags.DEFINE_string("model", "transe", "Model: [transe, transd, distmult]")
 tf.flags.DEFINE_string("mode", "disc", "Mode: [disc, gen, gan]")
 tf.flags.DEFINE_string("run_name", None, "Run name")
-tf.flags.DEFINE_string("summaries_dir", "/users/rmm120030/working/umls-mke/model/summary", "model summary dir")
+tf.flags.DEFINE_string("summaries_dir", "data/summary", "model summary dir")
 tf.flags.DEFINE_integer("batch_size", 1024, "batch size")
 tf.flags.DEFINE_bool("load", False, "Load model?")
 tf.flags.DEFINE_bool("load_embeddings", False, "Load embeddings?")
-tf.flags.DEFINE_string("embedding_file", "/users/rmm120030/working/umls-mke/model/embeddings/transe-disc.npz",
-                       "Embedding matrix npz")
+tf.flags.DEFINE_string("embedding_file", "data/embeddings.npz", "Embedding matrix npz")
 tf.flags.DEFINE_integer("num_epochs", 100, "Number of epochs?")
 tf.flags.DEFINE_float("val_proportion", 0.1, "Proportion of training data to hold out for validation")
 tf.flags.DEFINE_integer("progress_update_interval", 1000, "Number of batches between progress updates")
@@ -26,7 +25,7 @@ tf.flags.DEFINE_string("save_strategy", "epoch", "Save every epoch or saved ever
 
 # eval control options
 tf.flags.DEFINE_string("eval_mode", "save", "Evaluation mode: [save, calc]")
-tf.flags.DEFINE_string("eval_dir", "/users/rmm120030/working/umls-mke/eval", "directory for evaluation outputs")
+tf.flags.DEFINE_string("eval_dir", "eval", "directory for evaluation outputs")
 tf.flags.DEFINE_integer("shard", 1, "Shard number for distributed eval.")
 tf.flags.DEFINE_integer("num_shards", 1, "Total number of shards for distributed eval.")
 tf.flags.DEFINE_bool("save_ranks", True, "Save ranks? (turn off while debugging)")

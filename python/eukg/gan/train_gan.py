@@ -8,10 +8,12 @@ from itertools import izip
 
 from .. import Config
 from ..data import data_util, DataGenerator
-from ..model import EmbeddingModel, Model
+from ..emb import EmbeddingModel
 from Generator import GanGenerator
+import Discriminator
 
 
+# noinspection PyUnboundLocalVariable
 def train():
   config = Config.flags
 
@@ -126,7 +128,7 @@ def init_model(config, mode):
       # config.embedding_size = config.embedding_size * 2
     else:
       raise ValueError('Unrecognized model type: %s' % config.model)
-    model = Model.BaseModel(config, em)
+    model = Discriminator.BaseModel(config, em)
   elif mode == 'gen':
     em = EmbeddingModel.DistMult(config)
     model = GanGenerator(config, em)
@@ -230,7 +232,7 @@ def train_epoch(session, discriminator, generator, config, data_generator, summa
   return global_step
 
 
-def train_epoch_sn(session, discriminator, generator, sn_generator, config, data_generator, summary_writer, global_step):
+def train_epoch_sn(sess, discriminator, generator, sn_generator, config, data_generator, summary_writer, global_step):
   baseline = 0.
   sn_baseline = 0.
   pbar = None
@@ -243,7 +245,7 @@ def train_epoch_sn(session, discriminator, generator, sn_generator, config, data
 
     # mt generation
     gen_feed_dict = generator.prepare_feed_dict(mt_batch, True)
-    probability_distributions = session.run(generator.probability_distributions, gen_feed_dict)
+    probability_distributions = sess.run(generator.probability_distributions, gen_feed_dict)
     rel, psub, pobj, sampl_sub, sampl_obj = mt_batch
     nsub, nobj, sampl_idx = sample_corrupted_triples(sampl_sub, sampl_obj, probability_distributions, idx_np)
 
@@ -251,7 +253,7 @@ def train_epoch_sn(session, discriminator, generator, sn_generator, config, data
     sn_gen_feed_dict = {sn_generator.smoothing_placeholders['sn_relations']: sn_batch[0],
                         sn_generator.smoothing_placeholders['sn_neg_subj']: sn_batch[3],
                         sn_generator.smoothing_placeholders['sn_neg_obj']: sn_batch[4]}
-    type_distributions = session.run(sn_generator.sampl_distributions, sn_gen_feed_dict)
+    type_distributions = sess.run(sn_generator.sampl_distributions, sn_gen_feed_dict)
     sn_nsub, sn_nobj, sn_sampl_idx = sample_corrupted_triples(sn_batch[3], sn_batch[4], type_distributions, sn_idx_np)
     types = np.unique(np.concatenate([sn_batch[1], sn_batch[2], sn_nsub, sn_nobj]))
     concepts = np.zeros([len(types), config.max_concepts_per_type], dtype=np.int32)
@@ -264,8 +266,8 @@ def train_epoch_sn(session, discriminator, generator, sn_generator, config, data
       concepts[i, :len(concepts_of_type_t)] = concepts_of_type_t
 
     # discrimination
-    dis_fetched = session.run(discriminator.fetches(True, verbose_batch) + [discriminator.sn_reward, discriminator.reward],
-                              {discriminator.relations: rel,
+    dis_fetched = sess.run(discriminator.fetches(True, verbose_batch) + [discriminator.sn_reward, discriminator.reward],
+                           {discriminator.relations: rel,
                                discriminator.pos_subj: psub,
                                discriminator.pos_obj: pobj,
                                discriminator.neg_subj: nsub,
@@ -284,17 +286,17 @@ def train_epoch_sn(session, discriminator, generator, sn_generator, config, data
     baseline = dis_fetched[-1]
     gen_feed_dict[generator.discounted_reward] = discounted_reward
     gen_feed_dict[generator.gan_loss_sample] = np.asarray(sampl_idx)
-    gen_fetched = session.run([generator.summary, generator.loss, generator.probabilities, generator.train_op],
-                              gen_feed_dict)
+    gen_fetched = sess.run([generator.summary, generator.loss, generator.probabilities, generator.train_op],
+                           gen_feed_dict)
 
     # sn generation reward
     sn_discounted_reward = dis_fetched[-2] - sn_baseline
     sn_baseline = dis_fetched[-2]
     sn_gen_feed_dict[sn_generator.discounted_reward] = sn_discounted_reward
     sn_gen_feed_dict[sn_generator.gan_loss_sample] = np.asarray(sn_sampl_idx)
-    sn_gen_fetched = session.run([sn_generator.summary, sn_generator.loss,
-                                  sn_generator.type_probabilities, sn_generator.train_op],
-                                 sn_gen_feed_dict)
+    sn_gen_fetched = sess.run([sn_generator.summary, sn_generator.loss,
+                               sn_generator.type_probabilities, sn_generator.train_op],
+                              sn_gen_feed_dict)
 
     # update tensorboard summary
     summary_writer.add_summary(dis_fetched[0], global_step)
@@ -303,8 +305,8 @@ def train_epoch_sn(session, discriminator, generator, sn_generator, config, data
     global_step += 1
 
     # perform normalization
-    session.run([generator.norm_op, discriminator.norm_op, sn_generator.norm_op],
-                {generator.ids_to_update: find_unique(mt_batch + sn_batch),
+    sess.run([generator.norm_op, discriminator.norm_op, sn_generator.norm_op],
+             {generator.ids_to_update: find_unique(mt_batch + sn_batch),
                  discriminator.ids_to_update: find_unique([rel, psub, pobj, nsub, nobj]),
                  sn_generator.ids_to_update: sn_batch[7]})
 

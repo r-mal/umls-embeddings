@@ -1,9 +1,11 @@
 import numpy as np
-import sys
 import os
 import csv
 import json
 from tqdm import tqdm
+import argparse
+
+from create_test_set import split
 
 
 def metathesaurus_triples(rrf_file, output_dir, valid_relations):
@@ -39,10 +41,8 @@ def metathesaurus_triples(rrf_file, output_dir, valid_relations):
   print("Saving %d unique triples to %s. %d concepts spanning %d relations" % (rnp.shape[0], output_dir, len(concepts),
                                                                                len(relations)))
 
-  np.savez_compressed(os.path.join(output_dir, 'triples'),
-                      subj=snp,
-                      rel=rnp,
-                      obj=onp)
+  split(snp, rnp, onp, output_dir)
+
   json.dump(conc2id, open(os.path.join(output_dir, 'name2id.json'), 'w+'))
   json.dump(concepts, open(os.path.join(output_dir, 'concept_vocab.json'), 'w+'))
   json.dump(relations, open(os.path.join(output_dir, 'relation_vocab.json'), 'w+'))
@@ -91,13 +91,17 @@ def metathesaurus_triples_trimmed(rrf_file, output_dir, valid_concepts, valid_re
 
 
 def main():
-  rrf_file = sys.argv[1]
-  valid_dir = sys.argv[2]
-  output = sys.argv[3]
+  parser = argparse.ArgumentParser(description='Extract relation triples into a compressed numpy file from MRCONSO.RRF')
+  parser.add_argument('umls_dir', help='UMLS MRCONSO.RRF file containing metathesaurus relations')
+  parser.add_argument('--output', default='data', help='the compressed numpy file to be created')
+  parser.add_argument('--valid_relations', default='data/valid_rels.txt',
+                      help='plaintext list of relations we want to extract triples for, one per line.')
 
-  valid_relations = set([rel.strip() for rel in open(os.path.join(valid_dir, 'valid_rels.txt'))])
+  args = parser.parse_args()
 
-  metathesaurus_triples(rrf_file, output, valid_relations)
+  valid_relations = set([rel.strip() for rel in open(args.valid_relations)])
+
+  metathesaurus_triples(os.path.join(args.umls_dir, 'META', 'MRCONSO.RRF'), args.output, valid_relations)
 
 
 if __name__ == "__main__":

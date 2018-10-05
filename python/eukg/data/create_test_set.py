@@ -3,13 +3,9 @@ import sys
 import os
 
 
-def from_train_file(data_dir, graph_name='metathesaurus', num_test=100000):
-  npz = np.load(os.path.join(data_dir, graph_name, 'triples.npz'))
-  data = dict(npz.iteritems())
-  npz.close()
-  print('read all data')
+def split(subj, rel, obj, data_dir, graph_name='metathesaurus', num_test=100000):
   valid_triples = set()
-  for s, r, o in zip(data['subj'], data['rel'], data['obj']):
+  for s, r, o in zip(subj, rel, obj):
     valid_triples.add((s, r, o))
   subj = np.asarray([s for s, _, _ in valid_triples])
   rel = np.asarray([r for _, r, _ in valid_triples])
@@ -31,6 +27,14 @@ def from_train_file(data_dir, graph_name='metathesaurus', num_test=100000):
                       rel=rel[test_idx],
                       obj=obj[test_idx])
   print('saved test set')
+
+
+def from_train_file(data_dir, graph_name='metathesaurus', num_test=100000):
+  npz = np.load(os.path.join(data_dir, graph_name, 'triples.npz'))
+  data = dict(npz.iteritems())
+  npz.close()
+  print('read all data')
+  split(data['subj'], data['rel'], data['obj'], data_dir, graph_name, num_test)
 
 
 def from_train_test_files():

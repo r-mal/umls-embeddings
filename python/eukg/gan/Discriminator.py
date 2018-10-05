@@ -2,7 +2,7 @@ import tensorflow as tf
 import numpy as np
 
 from ..data import DataGenerator
-import Smoothing
+from ..emb import Smoothing
 
 from tf_util.Trainable import Trainable
 
@@ -13,7 +13,7 @@ class BaseModel(Trainable):
     :param config: config map
     :param embedding_model: KG Embedding Model
     :type embedding_model: EmbeddingModel.BaseModel
-    :param data_generator: ???
+    :param data_generator: data generator
     :type data_generator: DataGenerator.DataGenerator
     """
     Trainable.__init__(self)
@@ -47,27 +47,6 @@ class BaseModel(Trainable):
       self.optimizer = lambda: tf.train.MomentumOptimizer(self.learning_rate,
                                                           config.momentum,
                                                           use_nesterov=True)
-
-    # dataset1 = r, s, o, ns, no
-    # train_dataset = tf.data.Dataset\
-    #     .from_generator(lambda: data_generator.generate_mt(True),
-    #                     output_types=(tf.int32, tf.int32, tf.int32, tf.int32, tf.int32)) \
-    #     .batch(self.batch_size)\
-    #     .shuffle(1000)\
-    #     .repeat()
-    # # ,
-    # # output_shapes = (tf.TensorShape([None]), tf.TensorShape([None]), tf.TensorShape([None]),
-    # #                  tf.TensorShape([None]), tf.TensorShape([None]))
-    # val_dataset = tf.data.Dataset\
-    #     .from_generator(lambda: data_generator.generate_mt(False),
-    #                     output_types=(tf.int32, tf.int32, tf.int32, tf.int32, tf.int32)) \
-    #     .batch(self.batch_size)\
-    #     .shuffle(1000)\
-    #     .repeat()
-    # dsiter = tf.data.Iterator.from_structure(train_dataset.output_types, train_dataset.output_shapes)
-    # self.train_init_op = dsiter.make_initializer(train_dataset)
-    # self.val_init_op = dsiter.make_initializer(val_dataset)
-    # self.relations, self.pos_subj, self.pos_obj, self.neg_subj, self.neg_obj = dsiter.get_next()
 
     # input placeholders
     self.relations = tf.placeholder(dtype=tf.int32, shape=[None], name='relations')
