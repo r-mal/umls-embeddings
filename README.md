@@ -1,3 +1,5 @@
+Code for the paper [Adversarial Learning of Knowledge Embeddings for the Unified Medical Language System](http://www.hlt.utdallas.edu/~ramon/papers/amia_cri_2019.pdf) to be presented at the AMIA Informatics Summit 2019.
+
 Requires Tensorflow version 1.9
 
 #### Data Preprocessing:
@@ -32,11 +34,11 @@ python -m eukg.train --mode=disc --model=transd --run_name=transd-sn-disc
 ```
 To train the Metathesaurus Generator:
 ```bash
-python -m eukg.train --mode=gen --model=distmult --run_name=dm-gen --no_semantic_network --no_semantic_network
+python -m eukg.train --mode=gen --model=distmult --run_name=dm-gen --no_semantic_network --learning_rate=1e-3
 ```
 To train the Metathesaurus and Semantic Network Generators:
 ```bash
-python -m eukg.train --mode=gen --model=distmult --run_name=dm-sn-gen
+python -m eukg.train --mode=gen --model=distmult --run_name=dm-sn-gen --learning_rate=1e-3
 ```
 To train the full GAN model:
 ```bash

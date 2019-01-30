@@ -245,9 +245,9 @@ def train_epoch_sn(sess, discriminator, generator, sn_generator, config, data_ge
 
     # mt generation
     gen_feed_dict = generator.prepare_feed_dict(mt_batch, True)
-    probability_distributions = sess.run(generator.probability_distributions, gen_feed_dict)
+    concept_distributions = sess.run(generator.probability_distributions, gen_feed_dict)
     rel, psub, pobj, sampl_sub, sampl_obj = mt_batch
-    nsub, nobj, sampl_idx = sample_corrupted_triples(sampl_sub, sampl_obj, probability_distributions, idx_np)
+    nsub, nobj, sampl_idx = sample_corrupted_triples(sampl_sub, sampl_obj, concept_distributions, idx_np)
 
     # sn generation
     sn_gen_feed_dict = {sn_generator.smoothing_placeholders['sn_relations']: sn_batch[0],
@@ -268,18 +268,18 @@ def train_epoch_sn(sess, discriminator, generator, sn_generator, config, data_ge
     # discrimination
     dis_fetched = sess.run(discriminator.fetches(True, verbose_batch) + [discriminator.sn_reward, discriminator.reward],
                            {discriminator.relations: rel,
-                               discriminator.pos_subj: psub,
-                               discriminator.pos_obj: pobj,
-                               discriminator.neg_subj: nsub,
-                               discriminator.neg_obj: nobj,
-                               discriminator.smoothing_placeholders['sn_relations']: sn_batch[0],
-                               discriminator.smoothing_placeholders['sn_pos_subj']: sn_batch[1],
-                               discriminator.smoothing_placeholders['sn_pos_obj']: sn_batch[2],
-                               discriminator.smoothing_placeholders['sn_neg_subj']: sn_nsub,
-                               discriminator.smoothing_placeholders['sn_neg_obj']: sn_nobj,
-                               discriminator.smoothing_placeholders['sn_types']: types,
-                               discriminator.smoothing_placeholders['sn_concepts']: concepts,
-                               discriminator.smoothing_placeholders['sn_conc_counts']: concept_lens})
+                            discriminator.pos_subj: psub,
+                            discriminator.pos_obj: pobj,
+                            discriminator.neg_subj: nsub,
+                            discriminator.neg_obj: nobj,
+                            discriminator.smoothing_placeholders['sn_relations']: sn_batch[0],
+                            discriminator.smoothing_placeholders['sn_pos_subj']: sn_batch[1],
+                            discriminator.smoothing_placeholders['sn_pos_obj']: sn_batch[2],
+                            discriminator.smoothing_placeholders['sn_neg_subj']: sn_nsub,
+                            discriminator.smoothing_placeholders['sn_neg_obj']: sn_nobj,
+                            discriminator.smoothing_placeholders['sn_types']: types,
+                            discriminator.smoothing_placeholders['sn_concepts']: concepts,
+                            discriminator.smoothing_placeholders['sn_conc_counts']: concept_lens})
 
     # generation reward
     discounted_reward = dis_fetched[-1] - baseline
@@ -307,8 +307,8 @@ def train_epoch_sn(sess, discriminator, generator, sn_generator, config, data_ge
     # perform normalization
     sess.run([generator.norm_op, discriminator.norm_op, sn_generator.norm_op],
              {generator.ids_to_update: find_unique(mt_batch + sn_batch),
-                 discriminator.ids_to_update: find_unique([rel, psub, pobj, nsub, nobj]),
-                 sn_generator.ids_to_update: sn_batch[7]})
+              discriminator.ids_to_update: find_unique([rel, psub, pobj, nsub, nobj]),
+              sn_generator.ids_to_update: sn_batch[7]})
 
     # udpate progress bar
     pbar = tqdm(total=console_update_interval) if pbar is None else pbar

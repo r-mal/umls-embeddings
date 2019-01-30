@@ -4,7 +4,7 @@ import numpy as np
 from ..data import DataGenerator
 from ..emb import Smoothing
 
-from tf_util.Trainable import Trainable
+from tf_util import Trainable
 
 
 class BaseModel(Trainable):
